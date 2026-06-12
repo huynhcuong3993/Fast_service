@@ -1,35 +1,69 @@
 const express = require('express');
+const axios = require('axios');
 const path = require('path');
+const cors = require('cors');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Cấu hình để đọc được dữ liệu gửi từ Form (POST)
-app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Phục vụ các file tĩnh trong thư mục 'public' (chứa file index.html)
+// Phục vụ giao diện Frontend từ thư mục 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Route xử lý khi người dùng nhấn nút Đặt Hàng
-app.post('/checkout', (req, res) => {
-    const { name, email } = req.body;
-    
-    // Hiện tại: Log thông tin đơn hàng ra màn hình server để kiểm tra
-    console.log(`[ĐƠN HÀNG MỚI]: Khách hàng ${name} (${email}) vừa đăng ký dịch vụ.`);
+// API Key Aviationstack được giữ an toàn tại Backend
+const AVIATION_API_KEY = '9b2967fc382e7955acda02849044d05e';
 
-    // Sau này: Đây là nơi bạn tích hợp Stripe / PayPal SDK để tính tiền.
-
-    // Phản hồi lại cho người dùng
-    res.send(`
-        <div style="text-align: center; font-family: sans-serif; margin-top: 50px;">
-            <h2 style="color: #10B981;">🎉 Đăng ký thành công!</h2>
-            <p>Cảm ơn bạn, <b>${name}</b>. Chúng tôi đã nhận được yêu cầu cho email <b>${email}</b>.</p>
-            <p>Hệ thống thanh toán quốc tế đang được bảo trì. Đơn hàng của bạn đã được ghi nhận thử nghiệm.</p>
-            <a href="/">Quay lại trang chủ</a>
-        </div>
-    `);
+// API: Lấy danh sách chuyến bay thời gian thực từ Aviationstack
+app.get('/api/flights', async (req, res) => {
+    try {
+        const arr_iata = req.query.iata || 'SGN'; // Mặc định là Tân Sơn Nhất nếu thiếu
+        
+        const response = await axios.get('http://api.aviationstack.com/v1/flights', {
+            params: {
+                access_key: AVIATION_API_KEY,
+                arr_iata: arr_iata,
+                flight_status: 'active',
+                limit: 50
+            }
+        });
+        
+        // Lọc dữ liệu cần thiết trả về cho Frontend
+        if (response.data && response.data.data) {
+            const flights = response.data.data.map(f => ({
+                flight_code: f.flight.iata || f.flight.number,
+                airline: f.airline ? f.airline.name : 'Unknown Airline',
+                arrival_time: f.arrival ? f.arrival.estimated : null
+            })).filter(f => f.flight_code);
+            
+            return res.json({ success: true, data: flights });
+        }
+        
+        res.json({ success: true, data: [] });
+    } catch (error) {
+        console.error("Lỗi API Aviationstack:", error.message);
+        // Trả về mảng rỗng để frontend không bị lỗi, khách vẫn nhập tay được bình thường
+        res.json({ success: false, data: [], message: "Không thể tải chuyến bay từ API." });
+    }
 });
 
+// API: Tiếp nhận thông tin đơn hàng đặt Fast Track
+app.post('/api/booking', (req, res) => {
+    const orderData = req.body;
+    
+    // Log thông tin đơn hàng ra terminal để kiểm tra
+    console.log("==========================================");
+    console.log("✈️ ĐƠN ĐẶT DỊCH VỤ FAST TRACK MỚI (BLUE TRIP) ✈️");
+    console.log(JSON.stringify(orderData, null, 2));
+    console.log("==========================================");
+
+    // Ở đây bạn có thể viết thêm code kết nối Database (MongoDB/MySQL) hoặc gửi Telegram/Email về cho nhân viên
+    
+    res.json({ success: true, message: "Đơn hàng đã được ghi nhận thành công trên hệ thống Blue Trip!" });
+});
+
+// Khởi chạy Server ở cổng 3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server đang chạy tại port: ${PORT}`);
+    console.log(`[Blue Trip] Server đang chạy tại: http://localhost:${PORT}`);
 });
