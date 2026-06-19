@@ -2,68 +2,122 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const cors = require('cors');
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Phục vụ giao diện Frontend từ thư mục 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Key Aviationstack được giữ an toàn tại Backend
-const AVIATION_API_KEY = '9b2967fc382e7955acda02849044d05e';
+const PORT = process.env.PORT || 3000;
+const AVIATION_API_KEY = process.env.AVIATION_API_KEY || '9b2967fc382e7955acda02849044d05e';
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// API: Lấy danh sách chuyến bay thời gian thực từ Aviationstack
+const TARGET_AIRPORTS = ['SGN', 'HAN', 'DAD', 'PQC'];
+const VIETNAM_AIRPORTS = ['SGN', 'HAN', 'DAD', 'CXR', 'PQC', 'VDO', 'HUI', 'VII', 'HPH', 'THD', 'TBB', 'VCL', 'VCA', 'BMV', 'PXU', 'UIH', 'VCS', 'DIN', 'VKG', 'CAH'];
+
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('🛡️ Connected to MongoDB Cluster.');
+        // Đặt là false để hệ thống tự động kiểm tra chu kỳ 3 ngày, không gọi API vô tội vạ khi test
+        preloadAllAirports(false);
+    })
+    .catch(err => console.error('MongoDB connection error:', err));
+
+const FlightCacheSchema = new mongoose.Schema({
+    airportCode: { type: String, required: true, unique: true },
+    flights: [{
+        type: { type: String, enum: ['ARRIVAL', 'DEPARTURE'] },
+        flight_code: String,
+        airline_iata: String, 
+        airline_name: String,
+        scheduled_time: String
+    }],
+    lastUpdated: { type: Date, default: Date.now }
+});
+
+const FlightCache = mongoose.model('FlightCache', FlightCacheSchema);
+
+async function preloadAllAirports(force = true) {
+    console.log(`🔄 [Cache Process] Đang kiểm tra dữ liệu 4 sân bay...`);
+    const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+    const now = new Date();
+
+    for (const iata of TARGET_AIRPORTS) {
+        try {
+            const cachedData = await FlightCache.findOne({ airportCode: iata });
+            
+            // Nếu hết hạn 3 ngày hoặc chưa có dữ liệu -> Gọi API ghi đè dữ liệu mới
+            if (force || !cachedData || (now - cachedData.lastUpdated >= THREE_DAYS_IN_MS)) {
+                console.log(`📡 Đang làm mới dữ liệu và ghi đè lịch trình cho sân bay: ${iata}`);
+                
+                const [arrResponse, depResponse] = await Promise.all([
+                    axios.get('http://api.aviationstack.com/v1/flights', { params: { access_key: AVIATION_API_KEY, arr_iata: iata, limit: 100 } }),
+                    axios.get('http://api.aviationstack.com/v1/flights', { params: { access_key: AVIATION_API_KEY, dep_iata: iata, limit: 100 } })
+                ]);
+                
+                let freshFlights = [];
+
+                if (arrResponse.data && arrResponse.data.data) {
+                    arrResponse.data.data.forEach(f => {
+                        if (f.flight_status === 'scheduled' && f.flight?.iata && f.departure?.iata && !VIETNAM_AIRPORTS.includes(f.departure.iata.toUpperCase())) {
+                            const airlineIata = f.airline?.iata || f.flight.iata.substring(0, 2);
+                            freshFlights.push({
+                                type: 'ARRIVAL',
+                                flight_code: f.flight.iata.toUpperCase(),
+                                airline_iata: airlineIata.toUpperCase(),
+                                airline_name: f.airline?.name || 'Hãng Quốc Tế',
+                                scheduled_time: f.arrival?.scheduled
+                            });
+                        }
+                    });
+                }
+
+                if (depResponse.data && depResponse.data.data) {
+                    depResponse.data.data.forEach(f => {
+                        if (f.flight_status === 'scheduled' && f.flight?.iata && f.arrival?.iata && !VIETNAM_AIRPORTS.includes(f.arrival.iata.toUpperCase())) {
+                            const airlineIata = f.airline?.iata || f.flight.iata.substring(0, 2);
+                            freshFlights.push({
+                                type: 'DEPARTURE',
+                                flight_code: f.flight.iata.toUpperCase(),
+                                airline_iata: airlineIata.toUpperCase(),
+                                airline_name: f.airline?.name || 'Hãng Quốc Tế',
+                                scheduled_time: f.departure?.scheduled
+                            });
+                        }
+                    });
+                }
+
+                // Ghi đè hoàn toàn thông tin mới để cập nhật sự thay đổi lịch trình
+                await FlightCache.findOneAndUpdate(
+                    { airportCode: iata },
+                    { flights: freshFlights, lastUpdated: now },
+                    { upsert: true, new: true }
+                );
+                console.log(`✅ Đã cập nhật dữ liệu mới cho sân bay ${iata}`);
+            } else {
+                console.log(`📦 Dữ liệu sân bay ${iata} vẫn tối ưu (Dưới 3 ngày). Duy trì cache.`);
+            }
+        } catch (error) {
+            console.error(`❌ Lỗi đồng bộ sân bay ${iata}:`, error.message);
+        }
+    }
+}
+
 app.get('/api/flights', async (req, res) => {
     try {
-        const arr_iata = req.query.iata || 'SGN'; // Mặc định là Tân Sơn Nhất nếu thiếu
-        
-        const response = await axios.get('http://api.aviationstack.com/v1/flights', {
-            params: {
-                access_key: AVIATION_API_KEY,
-                arr_iata: arr_iata,
-                flight_status: 'active',
-                limit: 50
-            }
-        });
-        
-        // Lọc dữ liệu cần thiết trả về cho Frontend
-        if (response.data && response.data.data) {
-            const flights = response.data.data.map(f => ({
-                flight_code: f.flight.iata || f.flight.number,
-                airline: f.airline ? f.airline.name : 'Unknown Airline',
-                arrival_time: f.arrival ? f.arrival.estimated : null
-            })).filter(f => f.flight_code);
-            
-            return res.json({ success: true, data: flights });
-        }
-        
-        res.json({ success: true, data: [] });
+        const cachedData = await FlightCache.findOne({ airportCode: (req.query.iata || 'SGN').toUpperCase() });
+        res.json({ success: true, data: cachedData ? cachedData.flights : [] });
     } catch (error) {
-        console.error("Lỗi API Aviationstack:", error.message);
-        // Trả về mảng rỗng để frontend không bị lỗi, khách vẫn nhập tay được bình thường
-        res.json({ success: false, data: [], message: "Không thể tải chuyến bay từ API." });
+        res.status(500).json({ success: false, data: [] });
     }
 });
 
-// API: Tiếp nhận thông tin đơn hàng đặt Fast Track
 app.post('/api/booking', (req, res) => {
-    const orderData = req.body;
-    
-    // Log thông tin đơn hàng ra terminal để kiểm tra
-    console.log("==========================================");
-    console.log("✈️ ĐƠN ĐẶT DỊCH VỤ FAST TRACK MỚI (BLUE TRIP) ✈️");
-    console.log(JSON.stringify(orderData, null, 2));
-    console.log("==========================================");
-
-    // Ở đây bạn có thể viết thêm code kết nối Database (MongoDB/MySQL) hoặc gửi Telegram/Email về cho nhân viên
-    
-    res.json({ success: true, message: "Đơn hàng đã được ghi nhận thành công trên hệ thống Blue Trip!" });
+    console.log("✈️ ĐƠN ĐẶT DỊCH VỤ CƠ CẤU MỚI:", req.body);
+    res.json({ success: true, message: "Hồ sơ dịch vụ đặt trước của bạn đã được tiếp nhận thành công!" });
 });
 
-// Khởi chạy Server ở cổng 3000
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`[Blue Trip] Server đang chạy tại: http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`[Blue Trip VIP] Server running on port: ${PORT}`));
