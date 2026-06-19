@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const AVIATION_API_KEY = process.env.AVIATION_API_KEY || '9b2967fc382e7955acda02849044d05e';
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = "mongodb+srv://huynhcuongtien_db_user:hJFfihcYphNsosMd@cluster0.5ft5fxv.mongodb.net/?appName=Cluster0/bluetrip?retryWrites=true&w=majority";
 
 const TARGET_AIRPORTS = ['SGN', 'HAN', 'DAD', 'PQC'];
 const VIETNAM_AIRPORTS = ['SGN', 'HAN', 'DAD', 'CXR', 'PQC', 'VDO', 'HUI', 'VII', 'HPH', 'THD', 'TBB', 'VCL', 'VCA', 'BMV', 'PXU', 'UIH', 'VCS', 'DIN', 'VKG', 'CAH'];
