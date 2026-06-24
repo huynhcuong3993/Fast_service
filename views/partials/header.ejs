@@ -1,0 +1,26 @@
+<header class="border-b border-amber-500/10 bg-[#0f1826]/95 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('home')">
+            <div class="border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded font-light text-xl tracking-[0.2em] serif-title">BT</div>
+            <div class="hidden sm:block">
+                <h1 class="text-base font-semibold tracking-[0.15em] text-white">BLUE TRIP</h1>
+                <p class="text-[9px] text-amber-500 tracking-[0.2em] uppercase font-medium">Sky VIP Services</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 md:gap-8">
+            <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase font-semibold">
+                <button id="nav_home" onclick="switchPage('home')" class="text-slate-400 hover:text-white pb-1 transition duration-300" data-i18n="home">Trang Chủ</button>
+                <button id="nav_booking" onclick="switchPage('fasttrack')" class="text-slate-400 hover:text-white pb-1 transition duration-300" data-i18n="book">Đặt Lịch Fast Track</button>
+            </div>
+            <div class="relative">
+                <button type="button" onclick="document.getElementById('lang_dropdown').classList.toggle('hidden')" class="flex items-center gap-2 bg-[#131f32] border border-slate-700 rounded-lg p-2 text-xs text-amber-400 font-semibold hover:border-amber-500/50 transition">
+                    <span id="current_flag">🇻🇳</span> <span id="current_lang_text">VI</span> <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </button>
+                <div id="lang_dropdown" class="absolute right-0 mt-2 w-32 bg-[#1a2639] border border-slate-700 rounded-xl shadow-2xl hidden z-50 overflow-hidden">
+                    <button type="button" onclick="changeLanguage('vi')" class="w-full flex items-center gap-3 p-3 text-xs text-slate-300 hover:bg-slate-800 transition"><span class="text-base">🇻🇳</span> Tiếng Việt</button>
+                    <button type="button" onclick="changeLanguage('en')" class="w-full flex items-center gap-3 p-3 text-xs text-slate-300 hover:bg-slate-800 transition"><span class="text-base">🇺🇸</span> English</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

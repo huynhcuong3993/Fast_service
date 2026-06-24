@@ -1,0 +1,22 @@
+html, body {
+    background-color: #0b111e !important;
+    color: #e2e8f0; /* slate-200 */
+    overflow-x: hidden;
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #162235; border-radius: 8px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #c5a880; border-radius: 8px; }
+
+.slide-layer { transition: opacity 1.5s ease-in-out; background-size: cover; background-position: center; }
+
+.input-error { 
+    border-color: #ef4444 !important; 
+    box-shadow: 0 0 0 1px #ef4444 !important; 
+    animation: shakeEffect 0.3s ease-in-out;
+}
+@keyframes shakeEffect {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}

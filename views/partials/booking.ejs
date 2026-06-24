@@ -1,0 +1,268 @@
+<div class="bg-[#111a28] border border-slate-800 rounded-3xl p-5 md:p-12 shadow-2xl">
+    <div class="text-center mb-10"><h2 class="text-3xl text-amber-500 serif-title" data-i18n="form_title">Đăng Ký Đón Tiễn Sân Bay</h2></div>
+
+    <div class="max-w-3xl mx-auto mb-12 relative flex justify-between items-center px-4 md:px-12">
+        <div class="absolute left-4 right-4 md:left-12 md:right-12 top-1/2 -translate-y-1/2 h-0.5 bg-slate-800 z-0">
+            <div id="progress_line" class="h-full bg-amber-500 transition-all duration-300 w-0"></div>
+        </div>
+        <div class="relative z-10 text-center flex flex-col items-center"><div id="step_dot_1" class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/20">1</div><span class="text-[11px] uppercase font-bold text-amber-500 mt-2" data-i18n="step_1">Hành Trình</span></div>
+        <div class="relative z-10 text-center flex flex-col items-center"><div id="step_dot_2" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-base transition-all">2</div><span class="text-[11px] uppercase font-bold text-slate-500 mt-2" data-i18n="step_2">Chọn Gói</span></div>
+        <div class="relative z-10 text-center flex flex-col items-center"><div id="step_dot_3" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center font-bold text-base transition-all">3</div><span class="text-[11px] uppercase font-bold text-slate-500 mt-2" data-i18n="step_3">Hoàn Tất</span></div>
+    </div>
+
+    <form id="fastTrackForm" class="space-y-10" autocomplete="off" novalidate>
+        <input type="hidden" id="full_flight_code_arr" name="full_flight_code_arr">
+        <input type="hidden" id="full_flight_code_dep" name="full_flight_code_dep">
+        <input type="hidden" id="fixed_arr_time_val" name="fixed_arr_time_val">
+
+        <!-- BƯỚC 1 -->
+        <div id="step_section_1" class="space-y-8">
+            <div class="bg-[#0b111e] p-6 rounded-2xl border border-slate-800 space-y-4 max-w-4xl mx-auto">
+                <label class="block text-[13px] font-bold uppercase tracking-widest text-amber-500 text-center" data-i18n="srv_select_label">Dịch vụ cần đặt</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <label class="flex items-center gap-4 p-5 rounded-2xl bg-[#131f32] border border-slate-800 cursor-pointer hover:border-emerald-500/50 transition">
+                        <input type="checkbox" id="srv_arrival" name="srv_arrival" checked onchange="handleServiceToggle()" class="w-6 h-6 accent-emerald-500">
+                        <span class="text-sm font-bold block text-white uppercase" data-i18n="srv_arr_chk">🛬 Dịch Vụ Đón</span>
+                    </label>
+                    <label class="flex items-center gap-4 p-5 rounded-2xl bg-[#131f32] border border-slate-800 cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" id="srv_departure" name="srv_departure" onchange="handleServiceToggle()" class="w-6 h-6 accent-blue-500">
+                        <span class="text-sm font-bold block text-white uppercase" data-i18n="srv_dep_chk">🛫 Dịch Vụ Tiễn</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-[#131f32]/50 p-5 rounded-2xl border border-slate-800/60 max-w-4xl mx-auto relative group">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-3" data-i18n="contact_label">Thông Tin Liên Hệ (Dùng Chung) *</label>
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg"></i>
+                    <input type="email" id="contact_email" name="contact_email" placeholder="Email nhận thông tin xác nhận dịch vụ..." class="w-full bg-[#0b111e] border border-slate-700 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition" required>
+                </div>
+            </div>
+
+            <div id="booking_tabs" class="flex justify-center gap-3 hidden max-w-2xl mx-auto">
+                <button type="button" id="tab_btn_arr" onclick="switchBookingTab('arr')" class="flex-1 py-3 text-xs uppercase font-bold rounded-xl bg-emerald-500 text-slate-950">🛬 Thông Tin Đón</button>
+                <button type="button" id="tab_btn_dep" onclick="switchBookingTab('dep')" class="flex-1 py-3 text-xs uppercase font-bold rounded-xl bg-slate-800 text-slate-400">🛫 Thông Tin Tiễn</button>
+            </div>
+
+            <div class="max-w-5xl mx-auto relative">
+                
+                <!-- KHỐI CARD ĐÓN -->
+                <div id="card_arrival" class="w-full bg-[#0b111e] border-t-4 border-emerald-500 rounded-3xl p-6 md:p-8 shadow-xl border-x border-b border-slate-800 space-y-6">
+                    <h3 class="text-base font-bold uppercase tracking-widest text-emerald-400 pb-4 border-b border-slate-800/60" data-i18n="tab_btn_arr">Lịch Trình Đón</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="airport_label">Sân Bay Hạ Cánh *</label>
+                                <select id="arr_location" name="arr_location" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-emerald-500" onchange="fetchFlights('arr')">
+                                    <option value="SGN">Tân Sơn Nhất (SGN)</option><option value="HAN">Nội Bài (HAN)</option><option value="DAD">Đà Nẵng (DAD)</option><option value="PQC">Phú Quốc (PQC)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="airline_label">Hãng Bay *</label>
+                                    <input type="text" id="arr_airline_input" autocomplete="off" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <div id="arr_airline_dropdown" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#1a2639] border border-slate-700 rounded-xl shadow-2xl hidden z-50 custom-scrollbar"></div>
+                                </div>
+                                <div class="relative">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="flight_num_label">Mã Chuyến *</label>
+                                    <div class="flex items-center bg-[#131f32] border border-slate-800 rounded-xl overflow-hidden focus-within:border-emerald-500">
+                                        <span id="arr_prefix" class="pl-4 pr-1 text-emerald-500 font-bold text-sm">--</span>
+                                        <input type="text" id="arr_flight_num" class="w-full bg-transparent p-3.5 text-sm text-white focus:outline-none uppercase">
+                                    </div>
+                                    <div id="arr_flight_dropdown" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#1a2639] border border-slate-700 rounded-xl shadow-2xl hidden z-50 custom-scrollbar"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="date_label">Ngày Bay *</label>
+                                    <input type="date" id="arr_date" name="arr_date" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="time_label">Giờ Đáp (24h) *</label>
+                                    <input type="time" id="arr_time" name="arr_time" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-emerald-400 font-bold focus:outline-none focus:border-emerald-500">
+                                    <p class="text-[10px] text-slate-400 mt-1"><span data-i18n="fixed_time_label">Lịch cố định:</span> <span id="arr_fixed_time_text" class="text-amber-400 font-bold">--:--</span></p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="note_label">Ghi Chú</label>
+                                <input type="text" name="arr_note" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#131f32]/40 p-5 rounded-2xl border border-slate-800 flex flex-col">
+                            <label class="block text-xs font-bold uppercase text-slate-400 mb-2" data-i18n="pax_label">Số Hành Khách</label>
+                            <div class="grid grid-cols-3 gap-2 mt-2 mb-4 bg-[#0b111e] p-3 rounded-xl border border-slate-800/50">
+                                <div class="text-center">
+                                    <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_adult">Lớn (>6t)</span>
+                                    <input type="number" id="arr_adult" name="arr_adult" min="1" value="1" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-emerald-400 font-bold text-sm py-1.5 focus:outline-none" onchange="renderPax('arr')">
+                                </div>
+                                <div class="text-center">
+                                    <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_child">Trẻ (2-5t)</span>
+                                    <input type="number" id="arr_child" name="arr_child" min="0" value="0" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-emerald-400 font-bold text-sm py-1.5 focus:outline-none" onchange="renderPax('arr')">
+                                </div>
+                                <div class="text-center">
+                                    <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_infant">Bé (<2t)</span>
+                                    <input type="number" id="arr_infant" name="arr_infant" min="0" value="0" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-slate-400 text-sm py-1.5 focus:outline-none" onchange="renderPax('arr')">
+                                </div>
+                            </div>
+                            <!-- KHUNG NHẬP TÊN HÀNH KHÁCH -->
+                            <div id="arr_pax_zone" class="w-full space-y-4 flex-grow"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KHỐI CARD TIỄN -->
+                <div id="card_departure" class="w-full bg-[#0b111e] border-t-4 border-blue-500 rounded-3xl p-6 md:p-8 shadow-xl border-x border-b border-slate-800 hidden space-y-6">
+                    <h3 class="text-base font-bold uppercase tracking-widest text-blue-400 pb-4 border-b border-slate-800/60" data-i18n="tab_btn_dep">Lịch Trình Tiễn</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="airport_label">Sân Bay Cất Cánh *</label>
+                                <select id="dep_location" name="dep_location" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-500" onchange="fetchFlights('dep')">
+                                    <option value="SGN">Tân Sơn Nhất (SGN)</option><option value="HAN">Nội Bài (HAN)</option><option value="DAD">Đà Nẵng (DAD)</option><option value="PQC">Phú Quốc (PQC)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="airline_label">Hãng Bay *</label>
+                                    <input type="text" id="dep_airline_input" autocomplete="off" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-500">
+                                    <div id="dep_airline_dropdown" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#1a2639] border border-slate-700 rounded-xl shadow-2xl hidden z-50 custom-scrollbar"></div>
+                                </div>
+                                <div class="relative">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="flight_num_label">Mã Chuyến *</label>
+                                    <div class="flex items-center bg-[#131f32] border border-slate-800 rounded-xl overflow-hidden focus-within:border-blue-500">
+                                        <span id="dep_prefix" class="pl-4 pr-1 text-blue-500 font-bold text-sm">--</span>
+                                        <input type="text" id="dep_flight_num" class="w-full bg-transparent p-3.5 text-sm text-white focus:outline-none uppercase">
+                                    </div>
+                                    <div id="dep_flight_dropdown" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#1a2639] border border-slate-700 rounded-xl shadow-2xl hidden z-50 custom-scrollbar"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="col-span-1">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="date_label">Ngày *</label>
+                                    <input type="date" id="dep_date" name="dep_date" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer">
+                                </div>
+                                <div class="col-span-1">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="time_label">Giờ Khởi Hành *</label>
+                                    <input type="time" id="dep_time" name="dep_time" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-blue-400 font-bold focus:outline-none focus:border-blue-500" onchange="autoCalculateMeetTime()">
+                                </div>
+                                <div class="col-span-1">
+                                    <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="meet_time_label">Giờ Hẹn *</label>
+                                    <input type="time" id="dep_meet_time" name="dep_meet_time" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-amber-400 font-bold focus:outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase" data-i18n="note_label">Ghi Chú</label>
+                                <input type="text" name="dep_note" class="w-full bg-[#131f32] border border-slate-800 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#131f32]/40 p-5 rounded-2xl border border-slate-800 flex flex-col">
+                            <label id="copy_arr_wrapper" class="flex items-center gap-3 p-3.5 rounded-xl bg-[#1a2639] border border-amber-500/40 cursor-pointer mb-4 hidden">
+                                <input type="checkbox" id="copy_arr_info" name="copy_arr_info" onchange="toggleDepPax()" class="w-5 h-5 accent-amber-500">
+                                <span class="text-xs font-bold text-amber-500" data-i18n="copy_arr_info">Dùng chung số lượng và danh sách từ chuyến Đón</span>
+                            </label>
+                            <div id="dep_pax_container" class="flex-grow flex flex-col">
+                                <label class="block text-xs font-bold uppercase text-slate-400 mb-2" data-i18n="pax_label">Số Hành Khách</label>
+                                <div class="grid grid-cols-3 gap-2 bg-[#0b111e] p-3 rounded-xl border border-slate-800/50 mb-4">
+                                    <div class="text-center">
+                                        <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_adult">Lớn (>6t)</span>
+                                        <input type="number" id="dep_adult" name="dep_adult" min="1" value="1" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-blue-400 font-bold text-sm py-1.5 focus:outline-none" onchange="renderPax('dep')">
+                                    </div>
+                                    <div class="text-center">
+                                        <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_child">Trẻ (2-5t)</span>
+                                        <input type="number" id="dep_child" name="dep_child" min="0" value="0" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-blue-400 font-bold text-sm py-1.5 focus:outline-none" onchange="renderPax('dep')">
+                                    </div>
+                                    <div class="text-center">
+                                        <span class="block text-[9px] text-slate-500 uppercase font-bold" data-i18n="pax_infant">Bé (<2t)</span>
+                                        <input type="number" id="dep_infant" name="dep_infant" min="0" value="0" class="w-full mt-1 bg-[#131f32] border border-slate-800 rounded text-center text-slate-400 text-sm py-1.5 focus:outline-none" onchange="renderPax('dep')">
+                                    </div>
+                                </div>
+                                <!-- KHUNG NHẬP TÊN HÀNH KHÁCH -->
+                                <div id="dep_pax_zone" class="w-full space-y-4 flex-grow overflow-visible"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dòng chữ thông báo lỗi Inline -->
+            <div id="inline_error_msg" class="hidden max-w-5xl mx-auto bg-red-500/10 border border-red-500/50 text-red-500 text-sm font-bold text-center p-4 rounded-xl mt-4 transition-all"></div>
+
+            <div class="flex justify-center pt-8 border-t border-slate-800 max-w-5xl mx-auto w-full">
+                <button type="button" onclick="goToStep(2)" class="w-full md:w-[60%] lg:w-[40%] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-black py-4 px-10 rounded-2xl text-sm uppercase tracking-widest transition-all shadow-xl shadow-amber-500/20 transform hover:-translate-y-1" data-i18n="btn_next">
+                    Xác Nhận & Tiếp Theo <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: CHỌN GÓI -->
+        <div id="step_section_2" class="space-y-8 hidden max-w-4xl mx-auto">
+            <div id="pkg_arrival_zone" class="p-6 rounded-3xl bg-[#0b111e] border border-emerald-500/20 space-y-4">
+                <h4 class="text-sm font-bold text-emerald-400 uppercase" data-i18n="pkg_arr_title">Gói Ưu Tiên Chuyến Đón</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <label class="border-2 border-slate-800 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer"><input type="radio" name="pkg_arr_tier" value="15" checked class="accent-emerald-500 mb-2 block mx-auto"><span class="text-white font-bold block" data-i18n="pkg_normal">Gói Thường</span><span class="text-emerald-400 font-black text-xl">$15</span></label>
+                    <label class="border-2 border-slate-800 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer"><input type="radio" name="pkg_arr_tier" value="30" class="accent-emerald-500 mb-2 block mx-auto"><span class="text-white font-bold block">Ưu Tiên 2</span><span class="text-emerald-400 font-black text-xl">$30</span></label>
+                    <label class="border-2 border-emerald-500/40 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer relative overflow-hidden"><div class="absolute -right-6 top-2.5 bg-amber-500 text-slate-950 text-[9px] font-bold py-0.5 px-6 rotate-45" data-i18n="pkg_recommend">Khuyên dùng</div><input type="radio" name="pkg_arr_tier" value="50" class="accent-emerald-500 mb-2 block mx-auto"><span class="text-emerald-400 font-bold block" data-i18n="pkg_vip">Ưu Tiên 1 (VIP)</span><span class="text-emerald-400 font-black text-xl">$50</span></label>
+                </div>
+            </div>
+
+            <div id="pkg_departure_zone" class="p-6 rounded-3xl bg-[#0b111e] border border-blue-500/20 space-y-4">
+                <h4 class="text-sm font-bold text-blue-400 uppercase" data-i18n="pkg_dep_title">Gói Ưu Tiên Chuyến Tiễn</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <label class="border-2 border-slate-800 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer"><input type="radio" name="pkg_dep_tier" value="15" checked class="accent-blue-500 mb-2 block mx-auto"><span class="text-white font-bold block" data-i18n="pkg_normal">Gói Thường</span><span class="text-blue-400 font-black text-xl">$15</span></label>
+                    <label class="border-2 border-slate-800 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer"><input type="radio" name="pkg_dep_tier" value="30" class="accent-blue-500 mb-2 block mx-auto"><span class="text-white font-bold block">Ưu Tiên 2</span><span class="text-blue-400 font-black text-xl">$30</span></label>
+                    <label class="border-2 border-blue-500/40 p-4 rounded-xl bg-[#131f32] block text-center cursor-pointer relative overflow-hidden"><div class="absolute -right-6 top-2.5 bg-amber-500 text-slate-950 text-[9px] font-bold py-0.5 px-6 rotate-45" data-i18n="pkg_recommend">Khuyên dùng</div><input type="radio" name="pkg_dep_tier" value="50" class="accent-blue-500 mb-2 block mx-auto"><span class="text-blue-400 font-bold block" data-i18n="pkg_vip">Ưu Tiên 1 (VIP)</span><span class="text-blue-400 font-black text-xl">$50</span></label>
+                </div>
+            </div>
+
+            <div class="bg-[#131f32] p-5 rounded-2xl border border-slate-800"><label class="flex items-center justify-between cursor-pointer"><div class="flex items-center gap-4"><input type="checkbox" id="addon_security" name="addon_security" value="10" class="w-5 h-5 accent-amber-500"><div><span class="text-sm font-bold text-white block uppercase" data-i18n="addon_security_title">Soi Chiếu An Ninh Ưu Tiên</span><span class="text-xs text-slate-400" data-i18n="addon_security_desc">Bỏ qua hàng đợi an ninh hành lý xách tay...</span></div></div><span class="text-amber-400 font-bold text-sm bg-black/30 px-3 py-1.5 rounded-lg">+$10 / khách</span></label></div>
+
+            <!-- BẢNG ĐỊNH GIÁ CHI TIẾT DẠNG HÓA ĐƠN THỰC TẾ -->
+            <div class="bg-gradient-to-br from-[#131f32] to-[#0b111e] border border-slate-700 rounded-3xl p-6 md:p-8 space-y-4 shadow-2xl relative">
+                <h4 class="text-sm font-bold honesty uppercase tracking-widest text-white border-b border-slate-700 pb-3 mb-4" data-i18n="bill_title">Chi Tiết Cước Phí Dịch Vụ</h4>
+                
+                <div id="invoice_details_zone" class="space-y-2 text-xs text-slate-400 border-b border-slate-800/80 pb-3 font-light">
+                    <!-- JS tự động bóc tách và vẽ hóa đơn vào đây -->
+                </div>
+
+                <div class="flex justify-between text-slate-300 text-sm font-medium">
+                    <span data-i18n="bill_subtotal">Tổng đơn giá gốc:</span>
+                    <span id="bill_subtotal" class="font-mono">$0.00</span>
+                </div>
+                <div id="bill_discount_row" class="flex justify-between text-emerald-400 hidden font-bold text-sm bg-emerald-500/10 p-2 rounded-lg">
+                    <span data-i18n="bill_discount">Chiết khấu Combo (-5%):</span>
+                    <span id="bill_discount" class="font-mono">-$0.00</span>
+                </div>
+                
+                <hr class="border-slate-700">
+                <div class="flex justify-between text-base font-black text-white items-end">
+                    <span class="uppercase text-slate-400 text-xs" data-i18n="bill_total">TỔNG CHI PHÍ:</span>
+                    <span id="bill_total" class="text-amber-500 text-3xl font-mono">$0.00</span>
+                </div>
+
+                <input type="hidden" id="bill_subtotal_val" name="bill_subtotal_val" value="0.00">
+                <input type="hidden" id="bill_discount_val" name="bill_discount_val" value="0.00">
+                <input type="hidden" id="bill_total_val" name="bill_total_val" value="0.00">
+            </div>
+
+            <div class="flex justify-between gap-4 border-t border-slate-800 pt-5">
+                <button type="button" onclick="goToStep(1)" class="border-2 border-slate-700 text-slate-300 py-3.5 px-6 rounded-xl text-xs uppercase font-bold hover:text-white" data-i18n="btn_prev">Quay Lại</button>
+                <button type="button" onclick="goToStep(3)" class="bg-amber-500 text-slate-950 font-black py-3.5 px-8 rounded-xl text-xs uppercase tracking-widest" data-i18n="btn_to_pay">Thanh Toán</button>
+            </div>
+        </div>
+
+        <!-- BƯỚC 3: HOÀN TẤT -->
+        <div id="step_section_3" class="space-y-6 hidden max-w-3xl mx-auto">
+            <div class="bg-[#0b111e] border border-slate-800 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+                <i class="fa-solid fa-credit-card text-4xl text-amber-400 animate-bounce"></i>
+                <h4 class="text-lg font-black text-white uppercase tracking-widest" data-i18n="pay_title">Cổng Thanh Toán Quốc Tế</h4>
+                <p class="text-xs text-slate-400 leading-relaxed" data-i18n="pay_desc">Hệ thống đang tích hợp, vui lòng nhấn nút dưới để hoàn thành đơn gửi về trung tâm điều hành...</p>
+            </div>
+            <div class="flex justify-between pt-6 border-t border-slate-800">
+                <button type="button" onclick="goToStep(2)" class="border-2 border-slate-700 text-slate-300 py-3.5 px-6 rounded-xl text-xs uppercase font-bold" data-i18n="btn_prev">Quay Lại</button>
+                <button type="submit" class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 text-slate-950 font-black py-4 px-10 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 transform hover:-translate-y-1" data-i18n="btn_finish">Xác Nhận Đặt Dịch Vụ</button>
+            </div>
+        </div>
+    </form>
+</div>
